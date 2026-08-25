@@ -1,0 +1,138 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-08-11T12:45:46.697Z",
+    "end": "2026-08-11T12:46:47.446Z",
+    "duration": 60749,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "abb0c291-2cba-4733-b512-a4777ab00fc7",
+      "title": "",
+      "fullFile": "D:\\project\\wcs-selenium\\tests\\visaService\\visaService.test.js",
+      "file": "\\tests\\visaService\\visaService.test.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "51beb4fd-b807-4f7d-bbdf-e9f8d158e60f",
+          "title": "Visa Service Functional Test",
+          "fullFile": "D:\\project\\wcs-selenium\\tests\\visaService\\visaService.test.js",
+          "file": "\\tests\\visaService\\visaService.test.js",
+          "beforeHooks": [
+            {
+              "title": "\"before all\" hook in \"Visa Service Functional Test\"",
+              "fullTitle": "Visa Service Functional Test \"before all\" hook in \"Visa Service Functional Test\"",
+              "timedOut": false,
+              "duration": 695,
+              "state": null,
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "driver = await getDriver();\n        loginPage = new LoginPage(driver);\n        visaPage = new VisaServicePage(driver);",
+              "err": {},
+              "uuid": "93aa05b8-05ba-4b15-afb6-60bcb21d098f",
+              "parentUUID": "51beb4fd-b807-4f7d-bbdf-e9f8d158e60f",
+              "isHook": true,
+              "skipped": false
+            }
+          ],
+          "afterHooks": [
+            {
+              "title": "\"after all\" hook in \"Visa Service Functional Test\"",
+              "fullTitle": "Visa Service Functional Test \"after all\" hook in \"Visa Service Functional Test\"",
+              "timedOut": false,
+              "duration": 126,
+              "state": null,
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "if (driver) {\n            await driver.quit();\n        }",
+              "err": {},
+              "uuid": "cb71b206-4471-4978-aab4-0f83802d932b",
+              "parentUUID": "51beb4fd-b807-4f7d-bbdf-e9f8d158e60f",
+              "isHook": true,
+              "skipped": false
+            }
+          ],
+          "tests": [
+            {
+              "title": "Complete Visa Service Order",
+              "fullTitle": "Visa Service Functional Test Complete Visa Service Order",
+              "timedOut": false,
+              "duration": 59919,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "//\n        // Login\n        //\n        await loginPage.open();\n        await loginPage.login(\n            process.env.EMAIL,\n            process.env.PASSWORD\n        );\n        //\n        // Open Visa Service\n        //\n        console.log(\"Open Visa Service...\");\n        await visaPage.openVisaService();\n        const isNewOrder = await visaPage.openVisaService();\nif (!isNewOrder) {\n    console.log(\"Existing order found. Finish cart flow.\");\n    await visaPage.selectShippingOption();\n    await visaPage.acceptRefundPolicy();\n    await visaPage.selectPaymentMethod();\n    await visaPage.checkoutFromCart();\n    return;\n}\n        //\n        // Destination Country\n        //\n        console.log(\"Destination Country...\");\n        await visaPage.selectDestinationCountry();\n        //\n        // Visa Type\n        //\n        console.log(\"Visa Type...\");\n        await visaPage.selectTypeOfVisa();\n        //\n        // Passport Type\n        //\n        console.log(\"Passport Type...\");\n        await visaPage.selectTypeOfPassport();\n        //\n        // Passport Origin Country\n        //\n        console.log(\"Passport Origin Country...\");\n        await visaPage.selectOriginCountry();\n        //\n        // Applicant Details\n        //\n        console.log(\"Applicant Details...\");\n        await visaPage.enterGivenName(\"Automation\");\n        await visaPage.enterSurname(\"Tester\");\n        await visaPage.enterPassportNumber(\"P12345678\");\n        //\n        // Passport Dates\n        //\n        console.log(\"Passport Dates...\");\n        await visaPage.enterDateOfIssue(\"01/01/2024\");\n        await visaPage.enterPassportValidity(\"01/01/2034\");\n        //\n        // State Of Residence\n        //\n        console.log(\"State Of Residence...\");\n        await visaPage.selectStateOfResidence();\n        //\n        // Number Of Entry\n        //\n        console.log(\"Number Of Entry...\");\n        await visaPage.selectNumberOfEntry();\n        //\n        // Departure Date\n        //\n        console.log(\"Departure Date...\");\n        await visaPage.enterDepartureDate(\"12/25/2026\");\n        //\n        // Upload Document\n        //\n        console.log(\"Upload Passport Copy...\");\n        await visaPage.uploadDocument(pdf);\n        //\n        // Additional Comments\n        //\n        console.log(\"Comments...\");\n        await visaPage.enterComments(\n            \"Visa Service Automation Test\"\n        );\n        //\n        // Optional Expected Date\n        //\n        // console.log(\"Expected Date...\");\n        // await visaPage.selectExpectedDate();\n        //\n        // Customer Reference\n        //\n        console.log(\"Customer Reference...\");\n        await visaPage.enterCustomerReference(\n            \"Automation Visa\"\n        );\n        //\n        // Checkout From Form\n        //\n        console.log(\"Checkout...\");\n        await visaPage.checkout();\n        //\n        // Shipping\n        //\n        console.log(\"Shipping...\");\n        await visaPage.selectShippingOption();\n        //\n        // Refund Policy\n        //\n        console.log(\"Refund Policy...\");\n        await visaPage.acceptRefundPolicy();\n        console.log(\"✓ Refund Policy Accepted\");\n        //\n        // Payment\n        //\n        console.log(\"Payment...\");\n        await visaPage.selectPaymentMethod();\n        console.log(\"✓ Payment Selected\");\n        //\n        // Checkout From Cart\n        //\n        console.log(\"Checkout From Cart...\");\n        await visaPage.checkoutFromCart();\n        //\n        // Wait For Confirmation\n        //\n        await driver.wait(async () => {\n            return (\n                await driver.getCurrentUrl()\n            ).includes(\"/confirmation\");\n        }, 60000);\n        console.log(await driver.getCurrentUrl());\n        //\n        // Order Number\n        //\n        const orderNumber =\n            await visaPage.getOrderNumber();\n        console.log(\"Order :\", orderNumber);\n        expect(orderNumber).to.not.equal(\"\");\n        // My Orders\n        await visaPage.openMyOrders();\nconst latest =\n    await visaPage.getLatestOrder(orderNumber);\nconsole.log(\"Latest Order :\", latest);\nexpect(latest).to.contain(\n    orderNumber.replace(\"Order No:\", \"\").trim()\n);",
+              "err": {},
+              "uuid": "9bf580e4-7adc-4c4a-8b37-805431a4d03a",
+              "parentUUID": "51beb4fd-b807-4f7d-bbdf-e9f8d158e60f",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "9bf580e4-7adc-4c4a-8b37-805431a4d03a"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 59919,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 300000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "11.7.6"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": true,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "8.0.1"
+    },
+    "marge": {
+      "options": null,
+      "version": "6.3.2"
+    }
+  }
+}

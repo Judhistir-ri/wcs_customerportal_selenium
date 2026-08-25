@@ -1,0 +1,23 @@
+{
+  "name": "wcs-selenium",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/**/*.test.js --reporter mochawesome",
+    "test_login": "mocha tests/login/login.test.js --reporter mochawesome"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "chai": "^6.2.2",
+    "dotenv": "^17.4.2",
+    "mocha": "^11.7.6",
+    "selenium-webdriver": "^4.46.0"
+  },
+  "devDependencies": {
+    "mochawesome": "^8.0.1"
+  }
+}
