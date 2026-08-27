@@ -2655,12 +2655,31 @@ describe("WCS - All 8 Functional Test Cases", function () {
                           "Credit/Debit Card selected."
                       );
           
-                      /*
-                       * If Notary Service does not require card
-                       * details, do NOT call enterCardDetails().
-                       *
-                       * Continue directly with Checkout & Pay.
-                       */
+
+                      console.log(
+                            "Entering card details..."
+                        );
+            
+                        await cartPage.enterCardDetails(
+            
+                            // Cardholder Name
+                            "Judhistir Behera",
+            
+                            // Card Number
+                            "4111111111111111",
+            
+                            // Expiry
+                            "12/36",
+            
+                            // CVV
+                            "246"
+            
+                        );
+            
+                        console.log(
+                            "✓ Card details entered"
+                        );
+
           
                       console.log(
                           "Checkout & Pay..."
