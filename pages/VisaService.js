@@ -102,35 +102,147 @@ class VisaServicePage {
 
     }
 
-    async click(locator) {
+    // async click(locator) {
 
-        const element = await this.find(locator);
+    //     const element = await this.find(locator);
 
-        await this.driver.executeScript(
+    //     await this.driver.executeScript(
 
-            "arguments[0].scrollIntoView({block:'center'});",
+    //         "arguments[0].scrollIntoView({block:'center'});",
 
-            element
+    //         element
 
-        );
+    //     );
 
-        await this.driver.wait(
+    //     await this.driver.wait(
 
-            until.elementIsVisible(element),
+    //         until.elementIsVisible(element),
 
-            10000
+    //         10000
 
-        );
+    //     );
 
-        await this.driver.executeScript(
+    //     await this.driver.executeScript(
 
-            "arguments[0].click();",
+    //         "arguments[0].click();",
 
-            element
+    //         element
 
-        );
+    //     );
 
+    // }
+
+async click(locator, timeout = 30000) {
+
+    const endTime = Date.now() + timeout;
+    let lastError = null;
+
+    while (Date.now() < endTime) {
+
+        try {
+
+            // IMPORTANT:
+            // Always find a FRESH element on every attempt.
+            const element = await this.driver.wait(
+                until.elementLocated(locator),
+                5000
+            );
+
+            await this.driver.wait(
+                until.elementIsVisible(element),
+                5000
+            );
+
+            // Scroll fresh element into view
+            await this.driver.executeScript(
+                `
+                arguments[0].scrollIntoView({
+                    block: 'center',
+                    inline: 'center'
+                });
+                `,
+                element
+            );
+
+            await this.driver.sleep(200);
+
+            // ------------------------------------------------
+            // Native Selenium click
+            // ------------------------------------------------
+            try {
+
+                // Re-find the element again because React/MUI
+                // can replace it during scroll.
+                const freshElement = await this.driver.findElement(locator);
+
+                await freshElement.click();
+
+                return true;
+
+            } catch (nativeError) {
+
+                lastError = nativeError;
+
+                // ------------------------------------------------
+                // If native click fails, find the element AGAIN
+                // before JavaScript click.
+                // ------------------------------------------------
+                try {
+
+                    const freshElement =
+                        await this.driver.findElement(locator);
+
+                    await this.driver.executeScript(
+                        "arguments[0].click();",
+                        freshElement
+                    );
+
+                    return true;
+
+                } catch (jsError) {
+
+                    lastError = jsError;
+
+                    // If React replaced the element, simply retry.
+                    if (
+                        jsError.name === "StaleElementReferenceError" ||
+                        jsError.message?.includes("stale element")
+                    ) {
+                        await this.driver.sleep(300);
+                        continue;
+                    }
+
+                    // Element may be temporarily covered.
+                    await this.driver.sleep(300);
+                    continue;
+                }
+            }
+
+        } catch (error) {
+
+            lastError = error;
+
+            // React re-rendered the DOM.
+            if (
+                error.name === "StaleElementReferenceError" ||
+                error.message?.includes("stale element")
+            ) {
+                await this.driver.sleep(300);
+                continue;
+            }
+
+            // Element may not yet be ready.
+            await this.driver.sleep(300);
+        }
     }
+
+    throw new Error(
+        `Unable to click element after ${timeout}ms: ${locator}. ` +
+        `Last error: ${lastError?.message || lastError}`
+    );
+    }
+    
+    
 
     async type(locator, value) {
 
@@ -216,35 +328,189 @@ class VisaServicePage {
     // Navigation
     // ==========================================
 
-    async openVisaService() {
+//     async openVisaService() {
 
-    await this.click(this.newOrder);
+//     await this.click(this.newOrder);
 
-    await this.click(this.visaService);
+//     await this.click(this.visaService);
 
-    await this.waitLoader();
+//     await this.waitLoader();
 
-    const result = await this.handleExistingCartPopup();
+//     const result = await this.handleExistingCartPopup();
 
-    if (result === "CART") {
+//     if (result === "CART") {
 
-        console.log("Already in Cart.");
+//         console.log("Already in Cart.");
 
-        return false;
+//         return false;
 
+//     }
+
+//     await this.driver.wait(async () => {
+
+//         return (
+//             await this.driver.getCurrentUrl()
+//         ).includes("/orders/new/visa-service");
+
+//     },30000);
+
+//     return true;
+
+    // }
+    
+async openVisaService() {
+    console.log("Open Visa Service...");
+
+    // =====================================================
+    // 1. If already on Visa Service page, do nothing
+    // =====================================================
+    const currentUrl = await this.driver.getCurrentUrl();
+
+    if (currentUrl.includes("/orders/new/visa-service")) {
+        console.log("Already on Visa Service page.");
+        return true;
     }
 
-    await this.driver.wait(async () => {
+    // =====================================================
+    // 2. Check whether Visa Service menu item already exists
+    // =====================================================
+    let visaLinks = await this.driver.findElements(
+        this.visaService
+    );
 
-        return (
-            await this.driver.getCurrentUrl()
-        ).includes("/orders/new/visa-service");
+    // =====================================================
+    // 3. New Order menu is collapsed
+    //    Only click New Order when Visa Service is absent
+    // =====================================================
+    if (visaLinks.length === 0) {
+        console.log("New Order menu is collapsed. Opening it...");
 
-    },30000);
+        await this.click(this.newOrder);
+
+        // Wait for submenu to appear
+        await this.driver.wait(
+            async () => {
+                const links = await this.driver.findElements(
+                    this.visaService
+                );
+
+                return links.length > 0;
+            },
+            15000
+        );
+    } else {
+        console.log("New Order menu is already expanded.");
+    }
+
+    // =====================================================
+    // 4. Click Visa Service
+    //    Always get a fresh element
+    // =====================================================
+    await this.driver.wait(
+        async () => {
+            const links = await this.driver.findElements(
+                this.visaService
+            );
+
+            if (links.length === 0) {
+                return false;
+            }
+
+            try {
+                return await links[0].isDisplayed();
+            } catch (e) {
+                return false;
+            }
+        },
+        15000
+    );
+
+    console.log("Visa Service menu item found.");
+
+    // Fresh element immediately before click
+    const visaLink = await this.driver.findElement(
+        this.visaService
+    );
+
+    // Scroll into view
+    await this.driver.executeScript(
+        `
+        arguments[0].scrollIntoView({
+            block: "center",
+            inline: "center"
+        });
+        `,
+        visaLink
+    );
+
+    await this.driver.sleep(300);
+
+    // =====================================================
+    // 5. Click
+    // =====================================================
+    try {
+        await visaLink.click();
+        console.log("Visa Service clicked.");
+    } catch (error) {
+        console.log(
+            "Normal click failed. Using JavaScript click..."
+        );
+
+        // IMPORTANT:
+        // Re-find the element because React may have
+        // replaced the DOM element.
+        const freshVisaLink =
+            await this.driver.findElement(
+                this.visaService
+            );
+
+        await this.driver.executeScript(
+            "arguments[0].click();",
+            freshVisaLink
+        );
+
+        console.log("Visa Service clicked using JS.");
+    }
+
+    // =====================================================
+    // 6. Wait for navigation
+    // =====================================================
+    await this.driver.wait(
+        async () => {
+            const url =
+                await this.driver.getCurrentUrl();
+
+            return url.includes(
+                "/orders/new/visa-service"
+            );
+        },
+        60000
+    );
+
+    console.log(
+        "Visa Service page opened successfully."
+    );
+
+    // =====================================================
+    // 7. Wait for page loader
+    // =====================================================
+    await this.waitLoader();
+
+    // =====================================================
+    // 8. Handle existing cart
+    // =====================================================
+    const result =
+        await this.handleExistingCartPopup();
+
+    if (result === "CART") {
+        console.log("Already in Cart.");
+        return false;
+    }
 
     return true;
-
-}
+    }
+    
+    
 
     // ==========================================
     // Destination Country
@@ -440,6 +706,74 @@ class VisaServicePage {
 
     }
 
+    //Enter Date
+      async enterDate(locator, date) {
+
+    const input = await this.find(locator);
+
+    await this.driver.executeScript(
+        "arguments[0].scrollIntoView({block:'center', inline:'center'});",
+        input
+    );
+
+    await this.driver.wait(
+        until.elementIsVisible(input),
+        10000
+    );
+
+    // First try normal Selenium input
+    try {
+
+        await input.click();
+
+        await input.clear();
+
+        await input.sendKeys(date);
+
+        return;
+
+    } catch (error) {
+
+        console.log(
+            "Normal date input failed. Trying JS input..."
+        );
+    }
+
+    // Fallback for MUI controlled inputs
+    await this.driver.executeScript(
+        `
+        const input = arguments[0];
+        const value = arguments[1];
+
+        const setter =
+            Object.getOwnPropertyDescriptor(
+                HTMLInputElement.prototype,
+                "value"
+            ).set;
+
+        setter.call(input, value);
+
+        input.dispatchEvent(
+            new Event("input", {
+                bubbles: true
+            })
+        );
+
+        input.dispatchEvent(
+            new Event("change", {
+                bubbles: true
+            })
+        );
+
+        input.blur();
+        `,
+        input,
+        date
+    );
+
+    await this.driver.sleep(500);
+    }
+
     // ==========================================
     // Passport Number
     // ==========================================
@@ -453,21 +787,39 @@ class VisaServicePage {
     // Date Of Issue
     // ==========================================
 
+    // async enterDateOfIssue(date = "01/01/2024") {
+
+    //     await this.type(this.dateOfIssue, date);
+
+    // }
+
     async enterDateOfIssue(date = "01/01/2024") {
 
-        await this.type(this.dateOfIssue, date);
+    await this.enterDate(
+        this.dateOfIssue,
+        date
+    );
+}
 
-    }
+    
 
     // ==========================================
     // Passport Validity
     // ==========================================
 
+    // async enterPassportValidity(date = "01/01/2034") {
+
+    //     await this.type(this.passportValidity, date);
+
+    // }
+
     async enterPassportValidity(date = "01/01/2034") {
 
-        await this.type(this.passportValidity, date);
-
-    }
+    await this.enterDate(
+        this.passportValidity,
+        date
+    );
+}
 
     // ==========================================
     // Applicant State Of Residence
@@ -553,11 +905,20 @@ class VisaServicePage {
     // Departure Date
     // ==========================================
 
-    async enterDepartureDate(date = "10/10/2026") {
+    // async enterDepartureDate(date = "10/10/2026") {
 
-        await this.type(this.departureDate, date);
+    //     await this.type(this.departureDate, date);
 
+    // }
+
+    async enterDepartureDate(date = "12/25/2026") {
+
+    await this.enterDate(
+        this.departureDate,
+        date
+    );
     }
+    
 
     // ==========================================
     // Upload Document
